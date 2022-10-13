@@ -630,6 +630,34 @@ public class Converter extends PascalBaseVisitor<Object>
         return null;
     }
     
+    @Override
+    public Object visitCaseStatement(PascalParser.CaseStatementContext ctx) 
+    {
+    	code.emitStart("switch (");
+    	visit(ctx.expression());
+    	code.emit(") {");
+    	for (int i = 0; i < ctx.caseBranchList().caseBranch().size(); i++)  //iterate through each branch in the branchList
+    	{
+    		PascalParser.CaseBranchContext branch = ctx.caseBranchList().caseBranch(i);
+    		PascalParser.CaseConstantListContext constantList = branch.caseConstantList();
+    		PascalParser.StatementContext statement = branch.statement();
+    		
+    		for (int j = 0; j < constantList.caseConstant().size(); j++)  //iterate through each constant in the constantList for the branch
+    		{
+        		code.emitLine("case ");
+        		code.emit((String) visit(constantList.caseConstant(j)));
+        		code.emit(": ");
+    		}
+    		
+    		code.emitLine((String) visit(statement));
+    		code.emit("break;");
+    	}
+    	code.emitEnd("}");
+    	
+    	return null;
+    	
+    }
+    
     @Override 
     public Object visitRepeatStatement(PascalParser.RepeatStatementContext ctx) 
     {
