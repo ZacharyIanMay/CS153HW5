@@ -687,7 +687,9 @@ public class Converter extends PascalBaseVisitor<Object>
         code.emit((String)visit(ctx.expression()));
         code.emit(")");
         code.emitLine("{");
+        code.indent();
         visit(ctx.statement());
+        code.dedent();
         code.emitEnd("}");
         return null;
     }
