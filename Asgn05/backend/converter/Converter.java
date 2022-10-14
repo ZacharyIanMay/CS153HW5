@@ -652,6 +652,33 @@ public class Converter extends PascalBaseVisitor<Object>
         code.emitEnd("}");
         return null;
     }
+
+    @Override
+    public Object visitIfStatement(PascalParser.IfStatementContext ctx)
+    {
+        code.emitStart("if(");
+        code.emit((String)visit(ctx.expression()));
+        code.emit(")");
+        code.emitLine("{");
+        code.indent();
+        visit(ctx.trueStatement());
+        code.dedent();
+        if(ctx.ELSE() == null)
+        {
+            code.emitEnd("}");
+        }
+        else
+        {
+            code.emitLine("}");
+            code.emitLine("else");
+            code.emitLine("{");
+            code.indent();
+            visit(ctx.falseStatement());
+            code.dedent();
+            code.emitEnd("}");
+        }
+        return null;
+    }
     
     @Override
     public Object visitCaseStatement(PascalParser.CaseStatementContext ctx) 
