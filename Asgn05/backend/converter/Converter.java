@@ -629,6 +629,29 @@ public class Converter extends PascalBaseVisitor<Object>
         
         return null;
     }
+
+    @Override
+    public Object visitForStatement(PascalParser.ForStatementContext ctx)
+    {
+        code.emitStart("for(");
+        // Because Pascal defines all variables before use at the top of the program, we don't have to worry about including the type in the for statment
+        String ident = ctx.variable().variableIdentifier().IDENTIFIER().getText();
+        code.emit(ident + " = " + visit(ctx.expression(0)) + "; ");
+        if(ctx.TO() != null)
+        {
+            code.emit(ident + " <= " + visit(ctx.expression(1)) + "; " + ident + "++)");
+        }
+        else
+        {
+            code.emit(ident + " >= " + visit(ctx.expression(1)) + "; " + ident + "--)");
+        }
+        code.emitLine("{");
+        code.indent();
+        visit(ctx.statement());
+        code.dedent();
+        code.emitEnd("}");
+        return null;
+    }
     
     @Override
     public Object visitCaseStatement(PascalParser.CaseStatementContext ctx) 
