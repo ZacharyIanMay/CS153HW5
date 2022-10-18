@@ -698,23 +698,27 @@ public class Converter extends PascalBaseVisitor<Object>
     public Object visitCaseStatement(PascalParser.CaseStatementContext ctx) 
     {
     	code.emitStart("switch (");
-    	visit(ctx.expression());
-    	code.emit(") {");
+    	String text = (String)visit(ctx.expression());
+    	if(text != null) code.emit(text);
+        code.emit(")\n{");
     	for (int i = 0; i < ctx.caseBranchList().caseBranch().size(); i++)  //iterate through each branch in the branchList
     	{
     		PascalParser.CaseBranchContext branch = ctx.caseBranchList().caseBranch(i);
     		PascalParser.CaseConstantListContext constantList = branch.caseConstantList();
     		PascalParser.StatementContext statement = branch.statement();
-    		
-    		for (int j = 0; j < constantList.caseConstant().size(); j++)  //iterate through each constant in the constantList for the branch
-    		{
-        		code.emitLine("case ");
-        		code.emit((String) visit(constantList.caseConstant(j)));
-        		code.emit(": ");
-    		}
-    		
-    		code.emitLine((String) visit(statement));
-    		code.emit("break;");
+            if(branch.getChildCount() != 0)
+            {
+                for (int j = 0; j < constantList.caseConstant().size(); j++)  //iterate through each constant in the constantList for the branch
+                {
+                    code.emit("case ");
+                    String con = constantList.caseConstant(j).getChild(0).getText();
+                    if (con != null) code.emit(con);
+                    code.emit(": ");
+                    String stat = (String) visit(statement);
+                    if (stat != null) code.emit(stat);
+                    code.emitLine("break;");
+                }
+            }
     	}
     	code.emitEnd("}");
     	
@@ -727,26 +731,44 @@ public class Converter extends PascalBaseVisitor<Object>
     {
     	code.emitStart((String) ctx.procedureName().entry.getName());
     	code.emit("(");
-    	if (ctx.argumentList() != null) 
-    	{
-    		code.emit((String) visit(ctx.argumentList()));
-    	}
+        if(ctx.argumentList() != null)
+        {
+            visit(ctx.argumentList());
+        }
     	code.emitEnd(");");
     	
     	return null;
     }
     
     @Override
-    public Object visitFunctionCall(PascalParser.FunctionCallContext ctx) 
-    {
-    	code.emitStart((String) ctx.functionName().entry.getName());
-    	code.emit("(");
-    	if(ctx.argumentList() != null) 
-    	{
-    		code.emit((String) visit(ctx.argumentList()));
-    	}
-    	code.emitEnd(");");
+    public Object visitFunctionCall(PascalParser.FunctionCallContext ctx) {
+        code.emitStart((String) ctx.functionName().entry.getName());
+        code.emit("(");
+        if(ctx.argumentList() != null)
+        {
+            visit(ctx.argumentList());
+        }
+    	code.emitEnd(")");
     	return null;
+    }
+
+    @Override
+    public Object visitArgumentList(PascalParser.ArgumentListContext ctx)
+    {
+        if(!ctx.argument().isEmpty())
+        {
+            code.emit((String)visit(ctx.argument(0)));
+            for(int i = 1; i < ctx.argument().size(); i++)
+            {
+                code.emit(", ");
+                String test = (String)visit(ctx.argument(i));
+                if(test != null)
+                {
+                    code.emit(test);
+                }
+            }
+        }
+        return null;
     }
     
     @Override 
