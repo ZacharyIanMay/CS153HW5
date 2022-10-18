@@ -736,6 +736,19 @@ public class Converter extends PascalBaseVisitor<Object>
     	return null;
     }
     
+    @Override
+    public Object visitFunctionCall(PascalParser.FunctionCallContext ctx) 
+    {
+    	code.emitStart((String) ctx.functionName().entry.getName());
+    	code.emit("(");
+    	if(ctx.argumentList() != null) 
+    	{
+    		code.emit((String) visit(ctx.argumentList()));
+    	}
+    	code.emitEnd(");");
+    	return null;
+    }
+    
     @Override 
     public Object visitRepeatStatement(PascalParser.RepeatStatementContext ctx) 
     {
